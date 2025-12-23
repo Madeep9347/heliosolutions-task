@@ -1,0 +1,39 @@
+version: 0.2
+
+env:
+  variables:
+    AWS_REGION: ap-south-1
+    BACKEND_ECR: backend-ecr
+    FRONTEND_ECR: frontend-ecr
+    BACKEND_CONTAINER: backend
+    FRONTEND_CONTAINER: frontend
+
+phases:
+  pre_build:
+    commands:
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - IMAGE_TAG=$CODEBUILD_BUILD_NUMBER
+
+  build:
+    commands:
+      - docker build -t $BACKEND_ECR:$IMAGE_TAG ecommerce-backend
+      - docker tag $BACKEND_ECR:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$BACKEND_ECR:$IMAGE_TAG
+
+      - docker build -t $FRONTEND_ECR:$IMAGE_TAG ecommerce-frontend
+      - docker tag $FRONTEND_ECR:$IMAGE_TAG $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$FRONTEND_ECR:$IMAGE_TAG
+
+  post_build:
+    commands:
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$BACKEND_ECR:$IMAGE_TAG
+      - docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$FRONTEND_ECR:$IMAGE_TAG
+
+      - printf '[{"name":"%s","imageUri":"%s"}]' backend $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$BACKEND_ECR:$IMAGE_TAG > imagedef-backend.json
+      - printf '[{"name":"%s","imageUri":"%s"}]' frontend $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/$FRONTEND_ECR:$IMAGE_TAG > imagedef-frontend.json
+
+artifacts:
+  files:
+    - cicd/appspec-ec2-backend.yml
+    - cicd/appspec-ec2-frontend.yml
+    - cicd/scripts/**/*
+    - imagedef-backend.json
+    - imagedef-frontend.json

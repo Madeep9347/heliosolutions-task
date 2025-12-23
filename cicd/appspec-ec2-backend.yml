@@ -1,0 +1,7 @@
+version: 0.0
+os: linux
+hooks:
+  ApplicationStop:
+    - location: cicd/scripts/backend-stop.sh
+  ApplicationStart:
+    - location: cicd/scripts/backend-start.sh
