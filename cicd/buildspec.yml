@@ -3,8 +3,8 @@ version: 0.2
 env:
   variables:
     AWS_REGION: ap-south-1
-    BACKEND_ECR: backend-ecr
-    FRONTEND_ECR: frontend-ecr
+    BACKEND_ECR: backend
+    FRONTEND_ECR: frontend
     BACKEND_CONTAINER: backend
     FRONTEND_CONTAINER: frontend
 
